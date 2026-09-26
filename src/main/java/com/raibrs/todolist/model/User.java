@@ -1,4 +1,4 @@
-package com.todolist;
+package com.raibrs.todolist.model;
 
 import java.util.ArrayList;
 import java.util.List;

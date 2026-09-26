@@ -1,6 +1,6 @@
-package com.todolist.repository;
+package com.raibrs.todolist.repository;
 
-import com.todolist.Task;
+import com.raibrs.todolist.model.Task;
 import java.util.List;
 
 public interface TaskStorage {

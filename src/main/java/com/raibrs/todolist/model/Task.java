@@ -1,4 +1,4 @@
-package com.todolist;
+package com.raibrs.todolist.model;
 
 public class Task {
     private final String title;

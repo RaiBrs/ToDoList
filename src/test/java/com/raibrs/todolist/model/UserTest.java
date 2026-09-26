@@ -1,10 +1,8 @@
-package com.todolist.tests;
+package com.raibrs.todolist.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.todolist.Task;
-import com.todolist.User;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 

@@ -1,10 +1,9 @@
-package com.todolist.tests;
+package com.raibrs.todolist.model;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.todolist.Task;
 import org.junit.jupiter.api.Test;
 
 class TaskTest {

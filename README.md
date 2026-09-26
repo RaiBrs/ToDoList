@@ -33,6 +33,7 @@
 
 </details>
 
+<a id="features"></a>
 ## ✨ Features
 
 - 🔐 Simple username and password login
@@ -44,6 +45,7 @@
 - 👋 Logout and return to the sign-in screen
 - 🧪 JUnit 6 tests for the domain and JSON storage
 
+<a id="run-locally"></a>
 ## 🚀 Run locally
 
 **Requirements:** Java 25 and Maven.
@@ -51,17 +53,19 @@
 ### Maven
 
 ```bash
-mvn compile exec:java -Dexec.mainClass=com.todolist.Main
+mvn compile exec:java -Dexec.mainClass=com.raibrs.todolist.App
 ```
 
+<a id="tests"></a>
 ## 🧪 Tests
 
-Tests use JUnit 6 and are organized by class in `com.todolist.tests`.
+Tests use JUnit 6 and mirror the packages they validate.
 
 ```bash
 mvn test
 ```
 
+<a id="local-storage"></a>
 ## 💾 Local storage
 
 Tasks are saved automatically after adding, completing, or removing a task.
@@ -72,6 +76,7 @@ data/tasks.json
 
 The JSON file is ignored by Git, so each user keeps local task data outside the repository.
 
+<a id="demo-account"></a>
 ## 🔑 Demo account
 
 | Field | Value |
@@ -81,6 +86,7 @@ The JSON file is ignored by Git, so each user keeps local task data outside the 
 
 The application formats the username internally as `@rai`.
 
+<a id="commands"></a>
 ## 🎮 Commands
 
 | Command | Action |
@@ -90,31 +96,43 @@ The application formats the username internally as `@rai`.
 | `R` | Remove a task |
 | `L` | Logout |
 
+<a id="project-structure"></a>
 ## 📁 Project structure
 
 ```text
 src/
 ├── main/
-│   └── java/
-│       └── com/todolist/
-│           ├── Main.java                 # Terminal interface and application flow
-│           ├── User.java                 # User data and owned tasks
-│           ├── Task.java                 # A task and its completion state
-│           └── repository/
-│               ├── UserRepository.java   # User registration and lookup
-│               ├── TaskStorage.java      # Task persistence contract
-│               └── JsonTaskStorage.java  # JSON file implementation
+│   ├── java/
+│   │   └── com/raibrs/todolist/
+│   │       ├── App.java                  # Application composition and startup
+│   │       ├── model/
+│   │       │   ├── User.java             # User data and owned tasks
+│   │       │   └── Task.java             # A task and its completion state
+│   │       ├── repository/
+│   │       │   ├── UserRepository.java   # User registration and lookup
+│   │       │   ├── TaskStorage.java      # Task persistence contract
+│   │       │   └── JsonTaskStorage.java  # JSON file implementation
+│   │       ├── service/
+│   │       │   └── TaskService.java      # Task actions and persistence
+│   │       └── ui/
+│   │           └── ConsoleUi.java        # Terminal input and output
+│   └── resources/                         # Future application resources
 └── test/
     └── java/
-        └── com/todolist/tests/            # Domain and storage tests
+        └── com/raibrs/todolist/
+            ├── model/                     # Domain tests
+            ├── repository/                # Persistence tests
+            └── service/                   # Task workflow tests
 ```
 
+<a id="current-limitations"></a>
 ## ⚠️ Current limitations
 
 - Only tasks are persisted; accounts remain in memory.
 - The demo account is temporary.
 - Passwords are stored in memory as plain text and must not be persisted yet.
 
+<a id="next-steps"></a>
 ## 🧭 Next steps
 
 - Replace the demo account with account creation.

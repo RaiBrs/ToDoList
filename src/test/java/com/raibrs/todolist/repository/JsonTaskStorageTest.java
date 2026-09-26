@@ -1,4 +1,4 @@
-package com.todolist.tests;
+package com.raibrs.todolist.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -6,9 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.todolist.Task;
-import com.todolist.repository.JsonTaskStorage;
-import com.todolist.repository.TaskStorage;
+import com.raibrs.todolist.model.Task;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;

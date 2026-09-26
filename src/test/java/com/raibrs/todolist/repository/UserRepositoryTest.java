@@ -1,10 +1,9 @@
-package com.todolist.tests;
+package com.raibrs.todolist.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.todolist.User;
-import com.todolist.repository.UserRepository;
+import com.raibrs.todolist.model.User;
 import org.junit.jupiter.api.Test;
 
 class UserRepositoryTest {

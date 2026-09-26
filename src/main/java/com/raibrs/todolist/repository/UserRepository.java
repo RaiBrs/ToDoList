@@ -1,6 +1,6 @@
-package com.todolist.repository;
+package com.raibrs.todolist.repository;
 
-import com.todolist.User;
+import com.raibrs.todolist.model.User;
 import java.util.ArrayList;
 import java.util.List;
 
