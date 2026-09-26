@@ -5,7 +5,7 @@
 ### A minimal terminal ToDoList built in Java
 
 <p>
-  <img src="https://img.shields.io/badge/Java-11%2B-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 11 or newer">
+  <img src="https://img.shields.io/badge/Java-25-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 25">
   <img src="https://img.shields.io/badge/Interface-Terminal-1F2937?style=for-the-badge&logo=windowsterminal&logoColor=white" alt="Terminal interface">
   <img src="https://img.shields.io/badge/Status-Learning%20Project-7C3AED?style=for-the-badge" alt="Learning project">
 </p>
@@ -23,6 +23,7 @@
 
 - [Features](#features)
 - [Run locally](#run-locally)
+- [Tests](#tests)
 - [Demo account](#demo-account)
 - [Commands](#commands)
 - [Project structure](#project-structure)
@@ -39,23 +40,32 @@
 - ✅ Complete tasks
 - 🗑️ Remove tasks
 - 👋 Logout and return to the sign-in screen
+- 🧪 JUnit 6 tests for the core domain
 
 ## 🚀 Run locally
 
-**Requirement:** Java 11 or newer.
+**Requirements:** Java 25. Maven is required to run the tests.
 
 ### PowerShell
 
 ```powershell
-javac -d out (Get-ChildItem -Recurse -Filter *.java | ForEach-Object { $_.FullName })
+javac -d out (Get-ChildItem -Path src\main\java -Recurse -Filter *.java | ForEach-Object { $_.FullName })
 java -cp out com.todolist.Main
 ```
 
 ### macOS / Linux
 
 ```bash
-javac -d out $(find src -name "*.java")
+javac -d out $(find src/main/java -name "*.java")
 java -cp out com.todolist.Main
+```
+
+## 🧪 Tests
+
+Tests use JUnit 6 and are organized by class in `com.todolist.tests`.
+
+```bash
+mvn test
 ```
 
 ## 🔑 Demo account
@@ -80,12 +90,17 @@ The application formats the username internally as `@rai`.
 
 ```text
 src/
-└── com/todolist/
-    ├── Main.java                 # Terminal interface and application flow
-    ├── User.java                 # User data and owned tasks
-    ├── Task.java                 # A task and its completion state
-    └── repository/
-        └── UserRepository.java   # User registration and lookup
+├── main/
+│   └── java/
+│       └── com/todolist/
+│           ├── Main.java                 # Terminal interface and application flow
+│           ├── User.java                 # User data and owned tasks
+│           ├── Task.java                 # A task and its completion state
+│           └── repository/
+│               └── UserRepository.java   # User registration and lookup
+└── test/
+    └── java/
+        └── com/todolist/tests/            # JUnit tests by responsibility
 ```
 
 ## ⚠️ Current limitations
@@ -99,7 +114,7 @@ src/
 - Add file-based persistence.
 - Replace the demo account with account creation.
 - Hash passwords before persisting them.
-- Add automated tests.
+- Expand test coverage.
 
 ---
 
