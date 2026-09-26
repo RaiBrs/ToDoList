@@ -11,6 +11,7 @@ public class User {
     public User(String username, String password) {
         this.username = normalizeUsername(username);
 
+        // password cannot be null or blank
         if (password == null || password.isBlank()) {
             throw new IllegalArgumentException("Password is required.");
         }
@@ -63,7 +64,6 @@ public class User {
 
     // Checks whether the provided password matches this user's password.
     public boolean matchesPassword(String password){
-
         return this.password.equals(password);
     }
 }

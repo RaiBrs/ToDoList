@@ -24,6 +24,7 @@
 - [Features](#features)
 - [Run locally](#run-locally)
 - [Tests](#tests)
+- [Local storage](#local-storage)
 - [Demo account](#demo-account)
 - [Commands](#commands)
 - [Project structure](#project-structure)
@@ -39,25 +40,18 @@
 - ➕ Add tasks
 - ✅ Complete tasks
 - 🗑️ Remove tasks
+- 💾 Automatically save tasks in a local JSON file
 - 👋 Logout and return to the sign-in screen
-- 🧪 JUnit 6 tests for the core domain
+- 🧪 JUnit 6 tests for the domain and JSON storage
 
 ## 🚀 Run locally
 
-**Requirements:** Java 25. Maven is required to run the tests.
+**Requirements:** Java 25 and Maven.
 
-### PowerShell
-
-```powershell
-javac -d out (Get-ChildItem -Path src\main\java -Recurse -Filter *.java | ForEach-Object { $_.FullName })
-java -cp out com.todolist.Main
-```
-
-### macOS / Linux
+### Maven
 
 ```bash
-javac -d out $(find src/main/java -name "*.java")
-java -cp out com.todolist.Main
+mvn compile exec:java -Dexec.mainClass=com.todolist.Main
 ```
 
 ## 🧪 Tests
@@ -67,6 +61,16 @@ Tests use JUnit 6 and are organized by class in `com.todolist.tests`.
 ```bash
 mvn test
 ```
+
+## 💾 Local storage
+
+Tasks are saved automatically after adding, completing, or removing a task.
+
+```text
+data/tasks.json
+```
+
+The JSON file is ignored by Git, so each user keeps local task data outside the repository.
 
 ## 🔑 Demo account
 
@@ -97,23 +101,25 @@ src/
 │           ├── User.java                 # User data and owned tasks
 │           ├── Task.java                 # A task and its completion state
 │           └── repository/
-│               └── UserRepository.java   # User registration and lookup
+│               ├── UserRepository.java   # User registration and lookup
+│               ├── TaskStorage.java      # Task persistence contract
+│               └── JsonTaskStorage.java  # JSON file implementation
 └── test/
     └── java/
-        └── com/todolist/tests/            # JUnit tests by responsibility
+        └── com/todolist/tests/            # Domain and storage tests
 ```
 
 ## ⚠️ Current limitations
 
-- Data is kept only in memory and is lost when the program closes.
+- Only tasks are persisted; accounts remain in memory.
 - The demo account is temporary.
-- Passwords are not ready for persistent storage yet.
+- Passwords are stored in memory as plain text and must not be persisted yet.
 
 ## 🧭 Next steps
 
-- Add file-based persistence.
 - Replace the demo account with account creation.
 - Hash passwords before persisting them.
+- Handle malformed JSON files gracefully.
 - Expand test coverage.
 
 ---

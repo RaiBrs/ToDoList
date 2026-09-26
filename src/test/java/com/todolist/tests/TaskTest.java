@@ -2,6 +2,7 @@ package com.todolist.tests;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.todolist.Task;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,22 @@ class TaskTest {
     @Test
     void newTaskStartsIncomplete() {
         Task task = new Task("Study Java");
+
+        assertFalse(task.isCompleted());
+    }
+
+    // Restored tasks keep their completion status.
+    @Test
+    void restoredTaskKeepsCompletionStatus() {
+        Task task = Task.restore("Study Java", true);
+
+        assertTrue(task.isCompleted());
+    }
+
+    // Restored tasks can remain incomplete.
+    @Test
+    void restoredTaskCanRemainIncomplete() {
+        Task task = Task.restore("Study Java", false);
 
         assertFalse(task.isCompleted());
     }

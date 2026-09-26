@@ -1,15 +1,29 @@
 package com.todolist;
 
+import com.todolist.repository.JsonTaskStorage;
+import com.todolist.repository.TaskStorage;
 import com.todolist.repository.UserRepository;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        // Temporary account until persistence and account creation are implemented.
+
         UserRepository userRepository = new UserRepository();
-        userRepository.addUser(new User("rai", "1234"));
+
+        // Store task data locally outside the source code.
+        TaskStorage taskStorage = new JsonTaskStorage(Path.of("data", "tasks.json"));
+
+        User demoUser = new User("rai", "1234");
+
+        // Restore saved tasks once before the login loop starts.
+        for (Task task : taskStorage.loadTasks(demoUser.getUsername())) {
+            demoUser.addTask(task);
+        }
+
+        userRepository.addUser(demoUser);
 
         Scanner scanner = new Scanner(System.in);
         showWelcome();
@@ -24,7 +38,7 @@ public class Main {
             }
 
             showLoginSuccess(user);
-            runTaskMenu(scanner, user);
+            runTaskMenu(scanner, user, taskStorage);
         }
     }
 
@@ -84,7 +98,7 @@ public class Main {
         System.out.println();
     }
 
-    private static void runTaskMenu(Scanner scanner, User user) {
+    private static void runTaskMenu(Scanner scanner, User user, TaskStorage taskStorage) {
         while (true) {
 
             // Redraw the current task state after every action.
@@ -100,13 +114,13 @@ public class Main {
 
             switch (option) {
                 case "A":
-                    addTask(scanner, user);
+                    addTask(scanner, user, taskStorage);
                     break;
                 case "C":
-                    completeTask(scanner, user);
+                    completeTask(scanner, user, taskStorage);
                     break;
                 case "R":
-                    removeTask(scanner, user);
+                    removeTask(scanner, user, taskStorage);
                     break;
                 case "L":
                     System.out.println();
@@ -149,15 +163,24 @@ public class Main {
         System.out.print("Choose an option: ");
     }
 
-    private static void addTask(Scanner scanner, User user) {
+    private static void addTask(Scanner scanner, User user, TaskStorage taskStorage) {
         System.out.println();
         System.out.print("Task title: ");
+
+        if (!scanner.hasNextLine()) {
+            return;
+        }
+
         String title = scanner.nextLine();
 
         try {
             // Task validates its own title before the user receives it.
             user.addTask(new Task(title));
-            System.out.println("✅ Task added.");
+
+            // Save the updated list before confirming the action.
+            if (persistTasks(user, taskStorage)) {
+                System.out.println("✅ Task added.");
+            }
         } catch (IllegalArgumentException exception) {
             System.out.println("⚠️  " + exception.getMessage());
         }
@@ -165,7 +188,7 @@ public class Main {
         System.out.println();
     }
 
-    private static void completeTask(Scanner scanner, User user) {
+    private static void completeTask(Scanner scanner, User user, TaskStorage taskStorage) {
         int taskIndex = readTaskIndex(scanner, user, "Complete task number: ");
 
         if (taskIndex < 0) {
@@ -178,13 +201,17 @@ public class Main {
             System.out.println("ℹ️  This task is already complete.");
         } else {
             task.complete();
-            System.out.println("✅ Task completed.");
+
+            // Save the new completion status before confirming the action.
+            if (persistTasks(user, taskStorage)) {
+                System.out.println("✅ Task completed.");
+            }
         }
 
         System.out.println();
     }
 
-    private static void removeTask(Scanner scanner, User user) {
+    private static void removeTask(Scanner scanner, User user, TaskStorage taskStorage) {
         int taskIndex = readTaskIndex(scanner, user, "Remove task number: ");
 
         if (taskIndex < 0) {
@@ -192,8 +219,23 @@ public class Main {
         }
 
         user.removeTask(taskIndex);
-        System.out.println("🗑️  Task removed.");
+
+        // Save the list without the removed task.
+        if (persistTasks(user, taskStorage)) {
+            System.out.println("🗑️  Task removed.");
+        }
         System.out.println();
+    }
+
+    private static boolean persistTasks(User user, TaskStorage taskStorage) {
+        try {
+            taskStorage.saveTasks(user.getUsername(), user.getTasks());
+            return true;
+        } catch (IllegalStateException exception) {
+            // Keep the application running when the storage file cannot be updated.
+            System.out.println("⚠️  Could not save tasks.");
+            return false;
+        }
     }
 
     private static int readTaskIndex(Scanner scanner, User user, String prompt) {
@@ -206,6 +248,11 @@ public class Main {
         }
 
         System.out.print(prompt);
+
+
+        if (!scanner.hasNextLine()) {
+            return -1;
+        }
 
         try {
             int taskNumber = Integer.parseInt(scanner.nextLine().trim());

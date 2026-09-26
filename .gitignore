@@ -30,5 +30,8 @@ bin/
 ### VS Code ###
 .vscode/
 
+### Application data ###
+data/
+
 ### Mac OS ###
 .DS_Store
