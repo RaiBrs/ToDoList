@@ -1,20 +1,20 @@
 package com.raibrs.todolist.repository;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.raibrs.todolist.model.Task;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import com.fasterxml.jackson.databind.JsonNode;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.List;
 
 public class JsonTaskStorage implements TaskStorage {
 
     private final Path filePath;
 
-    // Converts Java objects to and from JSON.
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public JsonTaskStorage(Path filePath) {
@@ -23,60 +23,87 @@ public class JsonTaskStorage implements TaskStorage {
 
     @Override
     public List<Task> loadTasks(String username) {
-        // New users do not have a storage file yet.
         if (Files.notExists(filePath)) {
             return List.of();
         }
 
         try {
-            // Load the JSON root containing all users.
             JsonNode root = objectMapper.readTree(filePath.toFile());
+            if (root == null || !root.isObject()) {
+                throw invalidFile("the root must be a JSON object");
+            }
+
             JsonNode savedTasks = root.get(username);
 
-            // Users without saved tasks receive an empty list.
-            if (savedTasks == null || !savedTasks.isArray()) {
+            if (savedTasks == null) {
                 return List.of();
+            }
+            if (!savedTasks.isArray()) {
+                throw invalidFile("tasks for " + username + " must be a JSON array");
             }
 
             List<Task> tasks = new ArrayList<>();
 
-            // Rebuild each saved task using its title and status.
             for (JsonNode savedTask : savedTasks) {
-                String title = savedTask.get("title").asText();
-                boolean completed = savedTask.get("completed").asBoolean();
+                if (!savedTask.isObject()) {
+                    throw invalidFile("each task must be a JSON object");
+                }
 
-                tasks.add(Task.restore(title, completed));
+                JsonNode titleNode = savedTask.get("title");
+                JsonNode completedNode = savedTask.get("completed");
+                if (titleNode == null || !titleNode.isTextual() || titleNode.asText().isBlank()) {
+                    throw invalidFile("each task must have a non-blank string title");
+                }
+                if (completedNode == null || !completedNode.isBoolean()) {
+                    throw invalidFile("each task must have a boolean completed value");
+                }
+
+                tasks.add(Task.restore(titleNode.asText(), completedNode.asBoolean()));
             }
 
             return tasks;
         } catch (IOException exception) {
-            throw new IllegalStateException("Could not load tasks.", exception);
+            throw new IllegalStateException("Could not read saved task file " + filePath + ".", exception);
         }
     }
 
     @Override
     public void saveTasks(String username, List<Task> tasks) {
         try {
-            Path parentDirectory = filePath.getParent();
+            Path absoluteFilePath = filePath.toAbsolutePath();
+            Path parentDirectory = absoluteFilePath.getParent();
 
-            // Ensure the storage directory exists before writing the file.
-            if (parentDirectory != null) {
-                Files.createDirectories(parentDirectory);
-            }
+            Files.createDirectories(parentDirectory);
 
-            // Keep task data already saved for other users.
-            ObjectNode root = Files.exists(filePath)
-                    ? (ObjectNode) objectMapper.readTree(filePath.toFile())
+            // Read the full document so saving one account preserves every other task list.
+            JsonNode savedRoot = Files.exists(absoluteFilePath)
+                    ? objectMapper.readTree(absoluteFilePath.toFile())
                     : objectMapper.createObjectNode();
+            if (savedRoot == null || !savedRoot.isObject()) {
+                throw invalidFile("the root must be a JSON object");
+            }
+            ObjectNode root = (ObjectNode) savedRoot;
 
-            // Replace only the current user's task list.
             root.set(username, objectMapper.valueToTree(tasks));
 
-            // Write readable JSON to the storage file.
-            objectMapper.writerWithDefaultPrettyPrinter()
-                    .writeValue(filePath.toFile(), root);
+            // Keep the temporary file beside the original so replacement can be atomic.
+            Path temporaryFile = Files.createTempFile(parentDirectory, "tasks-", ".tmp");
+            try {
+                objectMapper.writerWithDefaultPrettyPrinter()
+                        .writeValue(temporaryFile.toFile(), root);
+
+                // Replace the original only after the complete JSON has been written.
+                Files.move(temporaryFile, absoluteFilePath,
+                        StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } finally {
+                Files.deleteIfExists(temporaryFile);
+            }
         } catch (IOException exception) {
-            throw new IllegalStateException("Could not save tasks.", exception);
+            throw new IllegalStateException("Could not safely save tasks to " + filePath + ".", exception);
         }
+    }
+
+    private IllegalStateException invalidFile(String reason) {
+        return new IllegalStateException("Invalid saved task file " + filePath + ": " + reason + ".");
     }
 }

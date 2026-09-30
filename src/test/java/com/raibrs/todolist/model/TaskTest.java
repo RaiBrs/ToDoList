@@ -16,7 +16,7 @@ class TaskTest {
         assertFalse(task.isCompleted());
     }
 
-    // Restored tasks keep their completion status.
+    // A restored task keeps its completed state.
     @Test
     void restoredTaskKeepsCompletionStatus() {
         Task task = Task.restore("Study Java", true);
@@ -24,7 +24,7 @@ class TaskTest {
         assertTrue(task.isCompleted());
     }
 
-    // Restored tasks can remain incomplete.
+    // A restored task can also remain incomplete.
     @Test
     void restoredTaskCanRemainIncomplete() {
         Task task = Task.restore("Study Java", false);
@@ -32,7 +32,7 @@ class TaskTest {
         assertFalse(task.isCompleted());
     }
 
-    // Blank titles are invalid.
+    // Blank titles are rejected.
     @Test
     void blankTitleIsRejected() {
         assertThrows(IllegalArgumentException.class, () -> new Task("   "));

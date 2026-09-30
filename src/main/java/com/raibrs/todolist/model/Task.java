@@ -5,7 +5,6 @@ public class Task {
     private boolean completed;
 
     private Task(String title, boolean completed) {
-        // Title cannot be null or blank
         if (title == null || title.isBlank()) {
             throw new IllegalArgumentException("Title cannot be null or empty.");
         }

@@ -25,8 +25,7 @@
 - [Run locally](#run-locally)
 - [Tests](#tests)
 - [Local storage](#local-storage)
-- [Demo account](#demo-account)
-- [Commands](#commands)
+- [Menus](#menus)
 - [Project structure](#project-structure)
 - [Current limitations](#current-limitations)
 - [Next steps](#next-steps)
@@ -37,12 +36,14 @@
 ## ✨ Features
 
 - 🔐 Simple username and password login
+- 🆕 Create a personal account
 - 👤 Username normalization (`Rai.Dev` becomes `@rai.dev`)
 - ➕ Add tasks
 - ✅ Complete tasks
 - 🗑️ Remove tasks
-- 💾 Automatically save tasks in a local JSON file
-- 👋 Logout and return to the sign-in screen
+- 💾 Save accounts and per-user task lists in local JSON files
+- 🔒 Store password hashes instead of plain-text passwords
+- 👋 Logout and return to the account menu
 - 🧪 JUnit 6 tests for the domain and JSON storage
 
 <a id="run-locally"></a>
@@ -69,25 +70,27 @@ mvn test
 ## 💾 Local storage
 
 Tasks are saved automatically after adding, completing, or removing a task.
+Accounts are saved when created. Each task list is keyed by the user's normalized username.
 
 ```text
 data/tasks.json
+data/users.json
 ```
 
-The JSON file is ignored by Git, so each user keeps local task data outside the repository.
-
-<a id="demo-account"></a>
-## 🔑 Demo account
-
-| Field | Value |
-| --- | --- |
-| Username | `rai` |
-| Password | `1234` |
-
-The application formats the username internally as `@rai`.
+These JSON files are ignored by Git and remain local to this copy of the application.
 
 <a id="commands"></a>
-## 🎮 Commands
+## 🎮 Menus
+
+### Account menu
+
+| Option | Action |
+| --- | --- |
+| `L` | Sign in |
+| `N` | Create an account |
+| `Q` | Quit |
+
+### Task menu
 
 | Command | Action |
 | --- | --- |
@@ -110,8 +113,12 @@ src/
 │   │       │   └── Task.java             # A task and its completion state
 │   │       ├── repository/
 │   │       │   ├── UserRepository.java   # User registration and lookup
+│   │       │   ├── UserStorage.java      # Account persistence contract
+│   │       │   ├── JsonUserStorage.java  # JSON account storage
 │   │       │   ├── TaskStorage.java      # Task persistence contract
 │   │       │   └── JsonTaskStorage.java  # JSON file implementation
+│   │       ├── security/
+│   │       │   └── PasswordHasher.java   # Salted password hashing and verification
 │   │       ├── service/
 │   │       │   └── TaskService.java      # Task actions and persistence
 │   │       └── ui/
@@ -128,16 +135,15 @@ src/
 <a id="current-limitations"></a>
 ## ⚠️ Current limitations
 
-- Only tasks are persisted; accounts remain in memory.
-- The demo account is temporary.
-- Passwords are stored in memory as plain text and must not be persisted yet.
+- Local account and task JSON files are not encrypted.
+- There is no password reset flow.
 
 <a id="next-steps"></a>
 ## 🧭 Next steps
 
-- Replace the demo account with account creation.
-- Hash passwords before persisting them.
-- Handle malformed JSON files gracefully.
+- Add password reset and account management.
+- Consider a database if the application grows beyond local use.
+- Expand test coverage for console interactions.
 - Expand test coverage.
 
 ---
