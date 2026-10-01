@@ -35,7 +35,7 @@ public final class ConsoleUi {
             }
 
             showLoginSuccess(user);
-            runTaskMenu(scanner, user, taskService);
+            runTaskMenu(scanner, user, taskService, userRepository);
         }
     }
 
@@ -156,7 +156,8 @@ public final class ConsoleUi {
         System.out.println();
     }
 
-    private static void runTaskMenu(Scanner scanner, User user, TaskService taskService) {
+    private static void runTaskMenu(Scanner scanner, User user, TaskService taskService,
+                                    UserRepository userRepository) {
         while (true) {
 
             showTasks(user);
@@ -172,11 +173,18 @@ public final class ConsoleUi {
                 case "A":
                     addTask(scanner, user, taskService);
                     break;
+                case "E":
+                    editTask(scanner, user, taskService);
+                    break;
                 case "C":
                     completeTask(scanner, user, taskService);
                     break;
                 case "R":
                     removeTask(scanner, user, taskService);
+                    break;
+                case "P":
+                    // Keep the active session on the account object with the new password hash.
+                    user = changePassword(scanner, user, userRepository);
                     break;
                 case "L":
                     System.out.println();
@@ -212,10 +220,54 @@ public final class ConsoleUi {
 
     private static void showMenu() {
         System.out.println("[A] Add task");
+        System.out.println("[E] Edit task title");
         System.out.println("[C] Complete task");
         System.out.println("[R] Remove task");
+        System.out.println("[P] Change password");
         System.out.println("[L] Logout");
         System.out.print("Choose an option: ");
+    }
+
+    private static User changePassword(Scanner scanner, User user, UserRepository userRepository) {
+        System.out.println();
+        System.out.print("Current password: ");
+        if (!scanner.hasNextLine()) {
+            return user;
+        }
+        String currentPassword = scanner.nextLine();
+
+        System.out.print("New password: ");
+        if (!scanner.hasNextLine()) {
+            return user;
+        }
+        String newPassword = scanner.nextLine();
+
+        System.out.print("Confirm new password: ");
+        if (!scanner.hasNextLine()) {
+            return user;
+        }
+        String confirmation = scanner.nextLine();
+
+        if (!newPassword.equals(confirmation)) {
+            System.out.println("⚠️  Passwords do not match.");
+            System.out.println();
+            return user;
+        }
+
+        try {
+            User updatedUser = userRepository.changePassword(
+                    user.getUsername().substring(1), currentPassword, newPassword);
+            System.out.println("✅ Password changed.");
+            System.out.println();
+            return updatedUser;
+        } catch (IllegalArgumentException exception) {
+            System.out.println("⚠️  " + exception.getMessage());
+        } catch (IllegalStateException exception) {
+            System.out.println("⚠️  Could not save the new password.");
+        }
+
+        System.out.println();
+        return user;
     }
 
     private static void addTask(Scanner scanner, User user, TaskService taskService) {
@@ -237,6 +289,29 @@ public final class ConsoleUi {
             System.out.println("⚠️  Could not save tasks.");
         }
 
+        System.out.println();
+    }
+
+    private static void editTask(Scanner scanner, User user, TaskService taskService) {
+        int taskIndex = readTaskIndex(scanner, user, "Edit task number: ");
+        if (taskIndex < 0) {
+            return;
+        }
+
+        System.out.print("New task title: ");
+        if (!scanner.hasNextLine()) {
+            return;
+        }
+
+        String newTitle = scanner.nextLine();
+        try {
+            taskService.editTask(user, taskIndex, newTitle);
+            System.out.println("✅ Task title updated.");
+        } catch (IllegalArgumentException exception) {
+            System.out.println("⚠️  " + exception.getMessage());
+        } catch (IllegalStateException exception) {
+            System.out.println("⚠️  Could not save tasks.");
+        }
         System.out.println();
     }
 

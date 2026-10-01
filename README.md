@@ -38,13 +38,16 @@
 - 🔐 Simple username and password login
 - 🆕 Create a personal account
 - 👤 Username normalization (`Rai.Dev` becomes `@rai.dev`)
+- 🔑 Change the password while signed in
+- ✅ Require at least 8 characters and reject passwords containing the username or matching a short common-password list
 - ➕ Add tasks
 - ✅ Complete tasks
+- ✏️ Edit task titles
 - 🗑️ Remove tasks
 - 💾 Save accounts and per-user task lists in local JSON files
 - 🔒 Store password hashes instead of plain-text passwords
 - 👋 Logout and return to the account menu
-- 🧪 JUnit 6 tests for the domain and JSON storage
+- 🧪 JUnit 6 tests for domain logic, JSON storage, and console flows
 
 <a id="run-locally"></a>
 ## 🚀 Run locally
@@ -70,7 +73,7 @@ mvn test
 ## 💾 Local storage
 
 Tasks are saved automatically after adding, completing, or removing a task.
-Accounts are saved when created. Each task list is keyed by the user's normalized username.
+Accounts are saved when created or when their password changes. Each task list is keyed by the user's normalized username.
 
 ```text
 data/tasks.json
@@ -95,9 +98,13 @@ These JSON files are ignored by Git and remain local to this copy of the applica
 | Command | Action |
 | --- | --- |
 | `A` | Add a task |
+| `E` | Edit a task title |
 | `C` | Complete a task |
 | `R` | Remove a task |
+| `P` | Change the password |
 | `L` | Logout |
+
+To change a password, enter the current password, then the new password twice. The new password must contain at least 8 characters, must not include the username, and must not exactly match one of the common passwords blocked by the application.
 
 <a id="project-structure"></a>
 ## 📁 Project structure
@@ -118,6 +125,7 @@ src/
 │   │       │   ├── TaskStorage.java      # Task persistence contract
 │   │       │   └── JsonTaskStorage.java  # JSON file implementation
 │   │       ├── security/
+│   │       │   ├── PasswordPolicy.java   # Rules for new passwords
 │   │       │   └── PasswordHasher.java   # Salted password hashing and verification
 │   │       ├── service/
 │   │       │   └── TaskService.java      # Task actions and persistence
@@ -129,7 +137,9 @@ src/
         └── com/raibrs/todolist/
             ├── model/                     # Domain tests
             ├── repository/                # Persistence tests
-            └── service/                   # Task workflow tests
+            ├── security/                  # Password hashing tests
+            ├── service/                   # Task workflow tests
+            └── ui/                        # Console interaction tests
 ```
 
 <a id="current-limitations"></a>
@@ -141,10 +151,8 @@ src/
 <a id="next-steps"></a>
 ## 🧭 Next steps
 
-- Add password reset and account management.
+- Add filtering for completed and pending tasks.
 - Consider a database if the application grows beyond local use.
-- Expand test coverage for console interactions.
-- Expand test coverage.
 
 ---
 

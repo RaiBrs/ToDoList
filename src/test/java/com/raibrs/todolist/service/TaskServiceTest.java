@@ -90,6 +90,49 @@ class TaskServiceTest {
         assertEquals("Study Java", user.getTask(0).getTitle());
     }
 
+    // Editing a task saves its new title and preserves its completion status.
+    @Test
+    void editTaskSavesTitleAndPreservesCompletionStatus() {
+        RecordingTaskStorage storage = new RecordingTaskStorage();
+        TaskService service = new TaskService(storage);
+        User user = new User("rai", "1234");
+        user.addTask(Task.restore("Old title", true));
+
+        service.editTask(user, 0, "New title");
+
+        assertEquals("New title", user.getTask(0).getTitle());
+        assertTrue(user.getTask(0).isCompleted());
+        assertEquals("New title", storage.savedTasks.get(0).getTitle());
+        assertTrue(storage.savedTasks.get(0).isCompleted());
+    }
+
+    // A failed save leaves the original title in memory.
+    @Test
+    void editTaskDoesNotChangeUserWhenSaveFails() {
+        RecordingTaskStorage storage = new RecordingTaskStorage();
+        TaskService service = new TaskService(storage);
+        User user = new User("rai", "1234");
+        user.addTask(new Task("Old title"));
+        storage.failOnSave = true;
+
+        assertThrows(IllegalStateException.class, () -> service.editTask(user, 0, "New title"));
+
+        assertEquals("Old title", user.getTask(0).getTitle());
+    }
+
+    // Blank titles are rejected without changing the original task.
+    @Test
+    void editTaskRejectsBlankTitle() {
+        RecordingTaskStorage storage = new RecordingTaskStorage();
+        TaskService service = new TaskService(storage);
+        User user = new User("rai", "1234");
+        user.addTask(new Task("Old title"));
+
+        assertThrows(IllegalArgumentException.class, () -> service.editTask(user, 0, "   "));
+
+        assertEquals("Old title", user.getTask(0).getTitle());
+    }
+
     // Each username loads only the list saved under its key.
     @Test
     void taskListsAreIsolatedByUsername() {

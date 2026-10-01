@@ -88,6 +88,14 @@ public class User {
         tasks.remove(index);
     }
 
+    public void replaceTask(int index, Task task) {
+        if (task == null) {
+            throw new IllegalArgumentException("Task is required.");
+        }
+
+        tasks.set(index, task);
+    }
+
     public void replaceTasks(List<Task> loadedTasks) {
         // Replacing the list on each login prevents tasks from being duplicated in memory.
         List<Task> validatedTasks = List.copyOf(loadedTasks);
@@ -98,5 +106,12 @@ public class User {
     // Re-derive the hash with the stored salt to validate the supplied password.
     public boolean matchesPassword(String password) {
         return PasswordHasher.matches(password, passwordHash);
+    }
+
+    /** Returns a new account with the same username and tasks but a newly hashed password. */
+    public User withPassword(String password) {
+        User updatedUser = new User(username.substring(1), password);
+        updatedUser.replaceTasks(getTasks());
+        return updatedUser;
     }
 }

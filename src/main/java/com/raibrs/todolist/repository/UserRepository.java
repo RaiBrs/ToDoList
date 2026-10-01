@@ -46,6 +46,29 @@ public class UserRepository {
         return user;
     }
 
+    /** Verifies the current password and saves a policy-compliant replacement before updating memory. */
+    public User changePassword(String username, String currentPassword, String newPassword) {
+        User currentUser = findByUsername(username);
+        if (!currentUser.matchesPassword(currentPassword)) {
+            throw new IllegalArgumentException("Current password is incorrect.");
+        }
+
+        PasswordPolicy.validate(username, newPassword);
+        if (currentUser.matchesPassword(newPassword)) {
+            throw new IllegalArgumentException("New password must be different from the current password.");
+        }
+
+        User updatedUser = currentUser.withPassword(newPassword);
+        List<User> updatedUsers = new ArrayList<>(users);
+        int userIndex = updatedUsers.indexOf(currentUser);
+        updatedUsers.set(userIndex, updatedUser);
+
+        // Persist the replacement before updating the repository's live account.
+        userStorage.saveUsers(updatedUsers);
+        users.set(userIndex, updatedUser);
+        return updatedUser;
+    }
+
     public User findByUsername(String username) {
         String normalizedUsername = User.normalizeUsername(username);
 

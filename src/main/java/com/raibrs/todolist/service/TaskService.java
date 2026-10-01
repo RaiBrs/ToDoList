@@ -57,6 +57,18 @@ public class TaskService {
         user.removeTask(taskIndex);
     }
 
+    public void editTask(User user, int taskIndex, String newTitle) {
+        Task originalTask = user.getTask(taskIndex);
+        Task replacement = Task.restore(newTitle, originalTask.isCompleted());
+
+        List<Task> updatedTasks = copyTasks(user);
+        updatedTasks.set(taskIndex, replacement);
+
+        // Keep the original task unchanged until its replacement has been saved.
+        saveTasks(user, updatedTasks);
+        user.replaceTask(taskIndex, replacement);
+    }
+
     private List<Task> copyTasks(User user) {
         List<Task> copy = new ArrayList<>();
         for (Task task : user.getTasks()) {
