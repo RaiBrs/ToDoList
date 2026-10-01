@@ -1,6 +1,7 @@
 package com.raibrs.todolist.repository;
 
 import com.raibrs.todolist.model.User;
+import com.raibrs.todolist.security.PasswordPolicy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +40,7 @@ public class UserRepository {
     }
 
     public User registerUser(String username, String password) {
+        PasswordPolicy.validate(username, password);
         User user = new User(username, password);
         addUser(user);
         return user;

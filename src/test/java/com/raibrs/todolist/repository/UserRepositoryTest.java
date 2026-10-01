@@ -46,14 +46,34 @@ class UserRepositoryTest {
     void registeredUserIsSavedAndCanBeLoadedAgain() {
         InMemoryUserStorage storage = new InMemoryUserStorage();
         UserRepository firstRepository = new UserRepository(storage);
-        firstRepository.registerUser("Rai.Dev", "secret");
+        firstRepository.registerUser("Rai.Dev", "A-safe-passphrase-2026");
 
         UserRepository reloadedRepository = new UserRepository(storage);
         User restoredUser = reloadedRepository.findByUsername("rai.dev");
 
-        assertTrue(restoredUser.matchesPassword("secret"));
+        assertTrue(restoredUser.matchesPassword("A-safe-passphrase-2026"));
         assertThrows(IllegalArgumentException.class,
-                () -> reloadedRepository.registerUser("RAI.DEV", "another-secret"));
+                () -> reloadedRepository.registerUser("RAI.DEV", "Another-safe-passphrase-2026"));
+    }
+
+    @Test
+    void registrationRejectsShortPassword() {
+        UserRepository repository = new UserRepository(new InMemoryUserStorage());
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> repository.registerUser("rai", "###"));
+
+        assertEquals("Password must contain at least 12 characters.", exception.getMessage());
+    }
+
+    @Test
+    void registrationRejectsPasswordContainingUsernameRegardlessOfCase() {
+        UserRepository repository = new UserRepository(new InMemoryUserStorage());
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> repository.registerUser("raibarros", "RaiBarros2006--"));
+
+        assertEquals("Password must not contain your username.", exception.getMessage());
     }
 
     private static class InMemoryUserStorage implements UserStorage {
