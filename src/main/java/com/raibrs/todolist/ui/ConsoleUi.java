@@ -2,27 +2,36 @@ package com.raibrs.todolist.ui;
 
 import com.raibrs.todolist.model.Task;
 import com.raibrs.todolist.model.User;
+import com.raibrs.todolist.repository.SessionStorage;
 import com.raibrs.todolist.repository.UserRepository;
 import com.raibrs.todolist.service.TaskService;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Scanner;
 
 public final class ConsoleUi {
     private ConsoleUi() {
     }
 
-    public static void run(UserRepository userRepository, TaskService taskService) {
+    public static void run(UserRepository userRepository, TaskService taskService,
+                           SessionStorage sessionStorage) {
         Scanner scanner = new Scanner(System.in);
         showWelcome();
+        User resumedUser = restoreSession(userRepository, sessionStorage);
 
         // Logging out returns to the account menu without closing the application.
         while (true) {
-            User user = accountMenu(scanner, userRepository);
+            User user = resumedUser;
+            resumedUser = null;
 
             if (user == null) {
-                System.out.println("Goodbye! 👋");
-                return;
+                user = accountMenu(scanner, userRepository);
+                if (user == null) {
+                    System.out.println("Goodbye! 👋");
+                    return;
+                }
+                saveSession(user, sessionStorage);
             }
 
             try {
@@ -30,12 +39,62 @@ public final class ConsoleUi {
                 taskService.loadTasks(user);
             } catch (IllegalStateException exception) {
                 System.out.println("⚠️  Could not load tasks for " + user.getUsername() + ".");
+                clearSession(sessionStorage);
                 System.out.println();
                 continue;
             }
 
             showLoginSuccess(user);
-            runTaskMenu(scanner, user, taskService, userRepository);
+            TaskMenuResult result = runTaskMenu(scanner, user, taskService, userRepository, sessionStorage);
+            if (result == TaskMenuResult.QUIT) {
+                System.out.println("Goodbye! 👋");
+                return;
+            }
+        }
+    }
+
+    private enum TaskMenuResult {
+        LOGOUT,
+        QUIT
+    }
+
+    private static User restoreSession(UserRepository userRepository, SessionStorage sessionStorage) {
+        Optional<String> savedUsername;
+        try {
+            savedUsername = sessionStorage.loadUsername();
+        } catch (IllegalStateException exception) {
+            System.out.println("⚠️  Could not load the saved session.");
+            return null;
+        }
+
+        if (savedUsername.isEmpty()) {
+            return null;
+        }
+
+        try {
+            User user = userRepository.findByUsername(savedUsername.get());
+            System.out.println("🔄 Resuming saved session for " + user.getUsername() + ".");
+            return user;
+        } catch (IllegalArgumentException exception) {
+            clearSession(sessionStorage);
+            return null;
+        }
+    }
+
+    private static void saveSession(User user, SessionStorage sessionStorage) {
+        try {
+            // Store only the normalized username; never write the password to the session file.
+            sessionStorage.saveUsername(user.getUsername().substring(1));
+        } catch (IllegalStateException exception) {
+            System.out.println("⚠️  Could not save the session. You may need to sign in next time.");
+        }
+    }
+
+    private static void clearSession(SessionStorage sessionStorage) {
+        try {
+            sessionStorage.clearSession();
+        } catch (IllegalStateException exception) {
+            System.out.println("⚠️  Could not clear the saved session file.");
         }
     }
 
@@ -156,15 +215,15 @@ public final class ConsoleUi {
         System.out.println();
     }
 
-    private static void runTaskMenu(Scanner scanner, User user, TaskService taskService,
-                                    UserRepository userRepository) {
+    private static TaskMenuResult runTaskMenu(Scanner scanner, User user, TaskService taskService,
+                                              UserRepository userRepository, SessionStorage sessionStorage) {
         while (true) {
 
             showTasks(user);
             showMenu();
 
             if (!scanner.hasNextLine()) {
-                return;
+                return TaskMenuResult.QUIT;
             }
 
             String option = scanner.nextLine().trim().toUpperCase(Locale.ROOT);
@@ -187,10 +246,13 @@ public final class ConsoleUi {
                     user = changePassword(scanner, user, userRepository);
                     break;
                 case "L":
+                    clearSession(sessionStorage);
                     System.out.println();
                     System.out.println("👋 Logged out.");
                     System.out.println();
-                    return;
+                    return TaskMenuResult.LOGOUT;
+                case "Q":
+                    return TaskMenuResult.QUIT;
                 default:
                     System.out.println();
                     System.out.println("⚠️  Invalid option. Try again.");
@@ -225,6 +287,7 @@ public final class ConsoleUi {
         System.out.println("[R] Remove task");
         System.out.println("[P] Change password");
         System.out.println("[L] Logout");
+        System.out.println("[Q] Quit and keep session");
         System.out.print("Choose an option: ");
     }
 

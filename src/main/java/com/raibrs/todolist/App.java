@@ -2,6 +2,7 @@ package com.raibrs.todolist;
 
 import com.raibrs.todolist.repository.JsonTaskStorage;
 import com.raibrs.todolist.repository.JsonUserStorage;
+import com.raibrs.todolist.repository.SessionStorage;
 import com.raibrs.todolist.repository.TaskStorage;
 import com.raibrs.todolist.repository.UserRepository;
 import com.raibrs.todolist.service.TaskService;
@@ -22,6 +23,7 @@ public class App {
 
         TaskStorage taskStorage = new JsonTaskStorage(Path.of("data", "tasks.json"));
         TaskService taskService = new TaskService(taskStorage);
-        ConsoleUi.run(userRepository, taskService);
+        SessionStorage sessionStorage = new SessionStorage(Path.of("data", "session.txt"));
+        ConsoleUi.run(userRepository, taskService, sessionStorage);
     }
 }

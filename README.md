@@ -39,6 +39,7 @@
 - 🆕 Create a personal account
 - 👤 Username normalization (`Rai.Dev` becomes `@rai.dev`)
 - 🔑 Change the password while signed in
+- 🔁 Resume the last account after restarting the application
 - ✅ Require at least 8 characters and reject passwords containing the username or matching a short common-password list
 - ➕ Add tasks
 - ✅ Complete tasks
@@ -78,9 +79,10 @@ Accounts are saved when created or when their password changes. Each task list i
 ```text
 data/tasks.json
 data/users.json
+data/session.txt
 ```
 
-These JSON files are ignored by Git and remain local to this copy of the application.
+These local files are ignored by Git. The session file stores only the username; choosing Logout deletes it.
 
 <a id="commands"></a>
 ## 🎮 Menus
@@ -103,8 +105,11 @@ These JSON files are ignored by Git and remain local to this copy of the applica
 | `R` | Remove a task |
 | `P` | Change the password |
 | `L` | Logout |
+| `Q` | Quit and keep the saved session |
 
 To change a password, enter the current password, then the new password twice. The new password must contain at least 8 characters, must not include the username, and must not exactly match one of the common passwords blocked by the application.
+
+Choose Logout to clear the saved session and return to the account menu. Choose Quit and keep the saved session to close the application and resume this account next time.
 
 <a id="project-structure"></a>
 ## 📁 Project structure
@@ -123,7 +128,8 @@ src/
 │   │       │   ├── UserStorage.java      # Account persistence contract
 │   │       │   ├── JsonUserStorage.java  # JSON account storage
 │   │       │   ├── TaskStorage.java      # Task persistence contract
-│   │       │   └── JsonTaskStorage.java  # JSON file implementation
+│   │       │   ├── JsonTaskStorage.java  # JSON file implementation
+│   │       │   └── SessionStorage.java   # Remembered local username
 │   │       ├── security/
 │   │       │   ├── PasswordPolicy.java   # Rules for new passwords
 │   │       │   └── PasswordHasher.java   # Salted password hashing and verification
@@ -146,6 +152,7 @@ src/
 ## ⚠️ Current limitations
 
 - Local account and task JSON files are not encrypted.
+- The saved session skips the login prompt for this local copy of the app, so use it only on a trusted computer.
 - There is no password reset flow.
 
 <a id="next-steps"></a>

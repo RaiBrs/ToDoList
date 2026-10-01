@@ -30,7 +30,7 @@ bin/
 ### VS Code ###
 .vscode/
 
-### Application data ###
+### Local account, task, and session data ###
 data/
 
 ### Mac OS ###
