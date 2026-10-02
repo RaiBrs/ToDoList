@@ -27,6 +27,8 @@
 - [Local storage](#local-storage)
 - [Menus](#menus)
 - [Project structure](#project-structure)
+- [Project rules](#project-rules)
+- [Test rules](#test-rules)
 - [Current limitations](#current-limitations)
 - [Next steps](#next-steps)
 
@@ -64,7 +66,7 @@ mvn compile exec:java -Dexec.mainClass=com.raibrs.todolist.App
 <a id="tests"></a>
 ## 🧪 Tests
 
-Tests use JUnit 6 and mirror the packages they validate.
+Tests use JUnit 6 and mirror the production packages they validate.
 
 ```bash
 mvn test
@@ -136,7 +138,9 @@ src/
 │   │       ├── service/
 │   │       │   └── TaskService.java      # Task actions and persistence
 │   │       └── ui/
-│   │           └── ConsoleUi.java        # Terminal input and output
+│   │           ├── ConsoleUi.java        # Session lifecycle and menu coordination
+│   │           ├── AccountMenu.java      # Login, registration, and password prompts
+│   │           └── TaskMenu.java         # Task display and task-action prompts
 │   └── resources/                         # Future application resources
 └── test/
     └── java/
@@ -147,6 +151,26 @@ src/
             ├── service/                   # Task workflow tests
             └── ui/                        # Console interaction tests
 ```
+
+<a id="project-rules"></a>
+## 📐 Project rules
+
+- Keep the standard Maven source roots: `src/main/java` and `src/test/java`.
+- Keep each Java package aligned with its directory path. Add packages for cohesive responsibilities, not individual classes.
+- Keep terminal prompts and rendering in `ui`; keep task workflows in `service`; keep persistence behind repository/storage types; keep domain rules in `model` and password rules in `security`.
+- Persist changes before mutating live in-memory state when a failed write must leave the current state unchanged.
+- Never persist plain-text passwords. The local session file may contain only the normalized username.
+- Add a new abstraction only when it gives a clear responsibility or makes behavior easier to test.
+
+<a id="test-rules"></a>
+## ✅ Test rules
+
+- Mirror the production package in `src/test/java` and use JUnit Jupiter.
+- Name tests after observable behavior, and cover both successful outcomes and important failure cases.
+- When persistence fails, assert that the in-memory domain state remains unchanged.
+- Use `@TempDir` for filesystem tests and in-memory storage fakes for focused service or repository tests.
+- Console tests may replace `System.in` and `System.out`; always restore both in a `finally` block because they are process-wide state.
+- Write comments to explain a protected rule or a non-obvious setup, not to narrate each test statement.
 
 <a id="current-limitations"></a>
 ## ⚠️ Current limitations

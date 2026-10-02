@@ -81,6 +81,7 @@ class ConsoleUiTest {
 
     private String runConsole(String input, UserRepository userRepository,
                               TaskService taskService, SessionStorage sessionStorage) {
+        // Console streams are process-wide, so restore them even when the console run fails.
         InputStream originalInput = System.in;
         PrintStream originalOutput = System.out;
         ByteArrayOutputStream capturedOutput = new ByteArrayOutputStream();
@@ -97,6 +98,7 @@ class ConsoleUiTest {
     }
 
     private static class InMemoryUserStorage implements UserStorage {
+        // In-memory fakes keep each console scenario independent of account files on disk.
         private List<User> users = List.of();
 
         @Override
@@ -111,6 +113,7 @@ class ConsoleUiTest {
     }
 
     private static class InMemoryTaskStorage implements TaskStorage {
+        // Keep task persistence deterministic while the test exercises the real console flow.
         private final Map<String, List<Task>> tasksByUsername = new HashMap<>();
 
         @Override
